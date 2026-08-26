@@ -13,15 +13,15 @@ if not WEBHOOK_URL:
 
 def check_minecraft_server():
     try:
-        # Aternos servers often need full SRV record resolution
-        server = JavaServer.lookup(f"{HOST}:{PORT}")
-        status = server.status(timeout=10.0)  # Extended timeout to 10s
+        # Pass timeout to the lookup function instead of .status()
+        server = JavaServer.lookup(f"{HOST}:{PORT}", timeout=10.0)
+        status = server.status()
         return True, status.players.online, status.players.max
     except Exception:
         try:
             # Fallback direct address check
-            server = JavaServer(HOST, PORT)
-            status = server.status(timeout=10.0)
+            server = JavaServer(HOST, PORT, timeout=10.0)
+            status = server.status()
             return True, status.players.online, status.players.max
         except Exception as e:
             print(f"Error checking server: {e}")
