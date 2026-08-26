@@ -2,12 +2,9 @@ name: Minecraft Server Status
 
 on:
   schedule:
-    # Runs automatically every 5 minutes
+    # Triggers every 5 minutes
     - cron: "*/5 * * * *"
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   update-status:
@@ -33,11 +30,3 @@ jobs:
           MC_PORT: "32558"
         run: |
           python check_server.py
-
-      - name: Commit and push status updates if changed
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add status_message.json
-          git diff --staged --quiet || git commit -m "Update Discord message ID [skip ci]"
-          git push
