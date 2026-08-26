@@ -1,0 +1,43 @@
+name: Minecraft Server Status
+
+on:
+  schedule:
+    # Runs automatically every 5 minutes
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run status checker
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          MC_HOST: "Over_Talented_MC.aternos.me"
+          MC_PORT: "25565"
+        run: |
+          python check_server.py
+
+      - name: Commit and push status updates if changed
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add status_message.json
+          git diff --staged --quiet || git commit -m "Update Discord message ID [skip ci]"
+          git push
