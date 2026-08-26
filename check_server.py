@@ -1,11 +1,9 @@
 import os
 import requests
 from datetime import datetime, timezone
-from mcstatus import JavaServer
 
-# Configuration from Environment Variables with defaults
 HOST = os.environ.get("MC_HOST", "Over_Talented_MC.aternos.me")
-PORT = int(os.environ.get("MC_PORT", 25565))
+PORT = os.environ.get("MC_PORT", "32558")
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
 if not WEBHOOK_URL:
@@ -13,19 +11,18 @@ if not WEBHOOK_URL:
 
 def check_minecraft_server():
     try:
-        # Pass timeout to the lookup function instead of .status()
-        server = JavaServer.lookup(f"{HOST}:{PORT}", timeout=10.0)
-        status = server.status()
-        return True, status.players.online, status.players.max
-    except Exception:
-        try:
-            # Fallback direct address check
-            server = JavaServer(HOST, PORT, timeout=10.0)
-            status = server.status()
-            return True, status.players.online, status.players.max
-        except Exception as e:
-            print(f"Error checking server: {e}")
-            return False, 0, 0
+        # Use api.mcsrvstat.us to bypass Aternos firewall/ping restrictions
+        response = requests.get(f"https://api.mcsrvstat.us/2/{HOST}:{PORT}", timeout=10)
+        data = response.json()
+        
+        if data.get("online"):
+            players_online = data.get("players", {}).get("online", 0)
+            players_max = data.get("players", {}).get("max", 0)
+            return True, players_online, players_max
+        return False, 0, 0
+    except Exception as e:
+        print(f"API Error: {e}")
+        return False, 0, 0
 
 def main():
     online, players_online, players_max = check_minecraft_server()
@@ -35,7 +32,7 @@ def main():
         embed = {
             "title": "🟢 Server Online",
             "description": "The Minecraft server is active and accessible.",
-            "color": 5763719,  # Vibrant Green
+            "color": 5763719,
             "fields": [
                 {
                     "name": "👥 Player Count",
@@ -48,15 +45,13 @@ def main():
                     "inline": True
                 }
             ],
-            "footer": {
-                "text": f"Status Check • {current_time}"
-            }
+            "footer": {"text": f"Status Check • {current_time}"}
         }
     else:
         embed = {
             "title": "🔴 Server Offline",
             "description": "The Minecraft server is currently unreachable.",
-            "color": 15548997,  # Deep Red
+            "color": 15548997,
             "fields": [
                 {
                     "name": "👥 Player Count",
@@ -69,17 +64,10 @@ def main():
                     "inline": True
                 }
             ],
-            "footer": {
-                "text": f"Status Check • {current_time}"
-            }
+            "footer": {"text": f"Status Check • {current_time}"}
         }
 
-    payload = {"embeds": [embed]}
-
-    # Send a new message every single run
-    response = requests.post(WEBHOOK_URL, json=payload)
-    if response.status_code not in [200, 204]:
-        print(f"Failed to post to Discord: {response.status_code} {response.text}")
+    requests.post(WEBHOOK_URL, json={"embeds": [embed]})
 
 if __name__ == "__main__":
     main()
