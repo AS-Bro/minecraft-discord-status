@@ -28,7 +28,7 @@ jobs:
 
       - name: Run status checker
         env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_URL: ${{secrets.DISCORD_WEBHOOK_URL}}
           MC_HOST: "Over_Talented_MC.aternos.me"
           MC_PORT: "32558"
         run: |
