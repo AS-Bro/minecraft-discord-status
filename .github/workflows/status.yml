@@ -5,6 +5,9 @@ on:
     - cron: "*/5 * * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   update-status:
     runs-on: ubuntu-latest
@@ -26,6 +29,13 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           MC_HOST: "hamlet.aternos.host"
-          MC_PORT: "32558"  # Change to your Bedrock port if different
+          MC_PORT: "32558"
         run: |
           python check_server.py
+
+      - name: Save status change back to repo
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add last_status.txt
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update server status cache" && git push) 
