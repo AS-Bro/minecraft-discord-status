@@ -2,7 +2,6 @@ name: Minecraft Server Status
 
 on:
   schedule:
-    # Triggers every 5 minutes
     - cron: "*/5 * * * *"
   workflow_dispatch:
 
