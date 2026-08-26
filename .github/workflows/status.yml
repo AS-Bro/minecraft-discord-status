@@ -30,7 +30,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           MC_HOST: "Over_Talented_MC.aternos.me"
-          MC_PORT: "25565"
+          MC_PORT: "32558"
         run: |
           python check_server.py
 
